@@ -1,0 +1,23 @@
+ * {
+    margin: 0;
+    padding: 0;
+ }
+ html {
+    width: 800px;
+    height: 585px;
+    background-color: blueviolet;
+    vertical-align: middle;
+    text-align: center;
+ }
+ div#main {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+ }
+#base_url_input {
+    width: 300px;
+    height: 32px;
+    padding: 0 5px 0;
+    font-size: 22px;
+}
