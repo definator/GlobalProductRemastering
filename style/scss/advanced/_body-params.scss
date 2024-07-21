@@ -1,0 +1,106 @@
+// @function assemble($text, $back, $front, $val) {
+//     // @each $elem in $
+// }
+$main-sel: "li.gpr-advanced";
+$bottom-block-sel: "div.gpr-advanced-bottom-block";
+$body-values: (
+    "1",
+    "2",
+    "3",
+    "4",
+    "5"
+);
+@mixin slim {
+    height: 100%;
+    width: 30%;
+}
+@mixin medium {
+    height: 100%;
+    width: 50%;
+}
+@mixin ample {
+    height: 100%;
+    width: 75%;
+    border-radius: 7px;
+}
+@mixin bnb {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+}
+@mixin athletic {
+    height: 5px;
+    width: 5px;
+    box-shadow: 5px 0,
+            -10px 5px, -5px 5px, 0 5px, 5px 5px, 10px 5px, 15px 5px,
+                        0 10px, 5px 10px,
+                        0 15px, 5px 15px,
+            -10px 20px, -5px 20px, 0 20px, 5px 20px, 10px 20px, 15px 20px,
+                        0 25px, 5px 25px;
+    color: grey;
+}
+// $mixins: (slim, medium, ample, bnb, athletic);
+// $body-full-list: assemble($body-text, $body-back-color, $body-front-color, $body-values);
+
+#{$main-sel} {
+    &:has(div.body-selector input[value="1"]:checked) {
+        .gpr-advanced-body-block {
+            text-align: center;
+            &:before {
+                content:'';
+                margin: 0 auto;
+                display: block;
+                background-color: grey;
+                @include slim();
+            }
+        }
+    }
+    &:has(div.body-selector input[value="2"]:checked) {
+        .gpr-advanced-body-block {
+            text-align: center;
+            &:before {
+                content:'';
+                margin: 0 auto;
+                display: block;
+                background-color: grey;
+                @include medium();
+            }
+        }
+    }
+    &:has(div.body-selector input[value="3"]:checked) {
+        .gpr-advanced-body-block {
+            text-align: center;
+            &:before {
+                content:'';
+                margin: 0 auto;
+                display: block;
+                background-color: grey;
+                @include ample();
+            }
+        }
+    }
+    &:has(div.body-selector input[value="4"]:checked) {
+        .gpr-advanced-body-block {
+            text-align: center;
+            &:before {
+                content:'';
+                margin: 0 auto;
+                display: block;
+                background-color: grey;
+                @include bnb();
+            }
+        }
+    }
+    &:has(div.body-selector input[value="5"]:checked) {
+        .gpr-advanced-body-block {
+            text-align: center;
+            &:before {
+                content:'';
+                margin: 0 auto;
+                display: block;
+                background-color: grey;
+                @include athletic();
+            }
+        }
+    }
+}

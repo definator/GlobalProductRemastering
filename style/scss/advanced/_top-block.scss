@@ -1,0 +1,109 @@
+$top-block-sel: "div.gpr-advanced-top-block";
+$size: 15px;
+$rr-options: (
+   "level" : "1",
+    "rate" : "2",
+    "crop" : "4",
+     "age" : "8",
+ " gender" : "16",
+ "decline" : "128",
+   "scamm" : "64",
+"duplicate": "256",
+"not to decline" : "512",
+    "blur" : "1024",
+  "rotate" : "2048",
+   "trash" : "32768",
+"Verify age": "65536"
+);
+$dr-options: (
+    "Other" : "0",
+    "Report" : "10",
+    "Age" : "11",
+    "Verify" : "11",
+    "Text" : "2"
+);
+$tribes: (
+    "bear",
+    "clean-cut",
+    "geek",
+    "twinks",
+    "daddy",
+    "jock",
+    "leathe"
+);
+
+#{$top-block-sel} {
+    display: flex;
+    justify-content: center;
+    height: $size;
+    width: 100%;
+    // background: #000;
+    div {
+        display: none;
+        margin-right: 1px;
+        height: $size;
+        width: $size;
+        
+    }
+    div[class^=gpr-tribe] {
+        display: block;
+    }
+}
+li.gpr-advanced {
+    &:has(input[name=reapprove]:checked) {
+        #{$top-block-sel}>div {
+            display: none;
+        }
+        #{$top-block-sel}>div[class^=gpr-rr] {
+            display: block;
+        }
+    }
+}
+li.gpr-advanced {
+    &:has(button.active[data-value=decline]) {
+        #{$top-block-sel}>div {
+            display: none;
+        }
+        #{$top-block-sel}>div[class^=gpr-dr] {
+            display: block;
+        }
+    }
+}
+
+@each $reason, $val in $rr-options {
+    li.gpr-advanced {
+        &:has(label[title="#{$reason}"]>input[name="reapprove-reason"]:checked) {
+            #{$top-block-sel}>div[title="#{$reason}"]{
+                background-color: white;
+                outline: 1px solid black;
+            }
+        }
+    }
+}
+
+@each $reason, $val in $dr-options {
+    li.gpr-advanced {
+        // &:has(label[title="#{$reason}"]>input:checked) {
+        //     #{$top-block-sel}>div[title="#{$reason}"]{
+        //         background-color: green;
+        //     }
+        // }
+        &:has(input[value="#{$val}"][name="declineType"]:checked) {
+            #{$top-block-sel}>div[title="#{$reason}"]{
+                background-color: white;
+                outline: 1px solid black;
+            }
+        }
+    }
+}
+
+@each $tribe in $tribes {
+    li.gpr-advanced {
+        &:has(input[id^="tribe-#{$tribe}"]:checked){
+            #{$top-block-sel}>div[class="gpr-tribe-#{$tribe}"]{
+                background-color: white;
+                outline: 1px solid black;
+            }
+        }
+    }
+}

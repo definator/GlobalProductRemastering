@@ -1,0 +1,69 @@
+{
+	"name": "GPR",
+	"description": "Global Product Remastering",
+	"version": "1.0",
+	"manifest_version": 3,
+
+	"icons": {
+		"128": "icons/128.png"
+	},
+
+	"action": {
+		"default_popup": "popup/popup.html",
+		"default_title": "GPR Config"
+	},
+
+	"content_scripts": [
+		{
+		  "matches": ["https://my.platformphoenix.com/*"],
+		  "css": [
+			"style/css/style.css",
+			"style/css/HnSCollection.css",
+			"style/css/PhotoLastItem.css"
+		],
+		  "js": [
+			"content/modules/ModuleWrapper.js",
+			"content/modules/HeaderModule.js",
+			"content/modules/HnSItem.js",
+			"content/modules/VideoItem.js",
+			"content/modules/GalleryPhotoItem.js",
+			"content/modules/PhotoLastItem.js",
+			"content/services/AdvancedMode.js",
+			"content/services/DisableAutoMistake.js",
+			"content/services/ReapproveFromLastQueue.js",
+			"content/config.js",
+			"content/App.js"
+		  ]
+		}
+	],
+
+	"background": {
+		"service_worker": "bg/App.js",
+		"type": "module"
+	},
+	"permissions": [
+		"tabs",
+		"bookmarks",
+		"webRequest",
+		"notifications",
+		"storage"
+	],
+	"host_permissions": [
+		"https://my.platformphoenix.com/*"
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["assets/*/*.*"],
+			"matches": ["https://my.platformphoenix.com/*"]
+		}
+	],
+	"commands": {
+		"_execute_action": {
+			"suggested_key": {
+				"default": "Ctrl+Shift+G",
+				"mac": "MacCtrl+Shift+G"
+		  	},
+		  "description": "Opens poopup.html"
+		}
+	}
+}

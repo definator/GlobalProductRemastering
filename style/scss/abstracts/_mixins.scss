@@ -1,0 +1,8 @@
+@mixin hs-color($content, $bg, $col) {
+    content: $content;
+    font-weight: bold;
+    background-color: $bg;
+    color: $col;
+    text-align: center;
+    display: block;
+}
