@@ -1,6 +1,0 @@
-@function get-hs-selector($cat, $val) {
-    $checked-input: "input[value="+$val+"]:checked";
-    $control-group: "div.control-group."+$cat+"-selector:has("+$checked-input+")";
-    $selector: $control-group+"~.ppap-advanced-block .advanced-"+$cat+"-block";
-    @return $selector;
-}
