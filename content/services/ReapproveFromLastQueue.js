@@ -15,6 +15,9 @@ var ReapproveFromLastQueue = class {
             scamm: 9,
             trash: 0,
         };
+        this.forbiddenTraffSources = [
+            'neotalks'
+        ];
     }
     keydownHandler(e){
         const activeModule = this.moduleManager.getActiveModule();
@@ -27,29 +30,33 @@ var ReapproveFromLastQueue = class {
         const formattedReason = reason.replace(' ', '-');
         photoLastItem.toggleForReapprove(formattedReason);
     }
-    clickHandler(e){
-        const activeModule = this.moduleManager.getActiveModule();
-        if(!activeModule || activeModule.name !== this.reapproveModuleName) return;
-        // debugger;
+    sendForReapprove(){
+        const message = {};
+        const modulesForReapprove = [];
         const modules = this.moduleManager.initedModules;
-        const modulesForReapprove = modules.filter(module => {
+        modules.forEach(module => {
+            const obj = {};
             const instance = module.instance;
-            if(!instance || !instance.isForReapprove || !instance.isForReapprove())
-                return;
-            return module;
+            if(!instance.isForReapprove) return;
+            obj.galleryURL = module.galleryURL;
+            obj.photoId = instance.photoId;
+            obj.level = instance.level;
+            obj.skinColor = instance.skinColor;
+            obj.activeReasons = instance.activeReasons;
+            modulesForReapprove.push(obj);
         });
-        const message = {
-            serviceName: 'LastReapprover',
-            action: 'addModules',
-            data: modulesForReapprove
-        };
+        message.serviceName = 'LastReapprover';
+        message.action = 'addModules';
+        message.data = modulesForReapprove;
         chrome.runtime.sendMessage(message);
     }
-    finishReapprove(){
-        // this.sendResponse('waiting')
-        window.close();
+    clickHandler(e){
+        const arr = [];
+        const activeModule = this.moduleManager.getActiveModule();
+        if(activeModule && activeModule.name === this.reapproveModuleName)
+            return this.sendForReapprove();
     }
-    sendForReapprove(reasons, photoId){
+    send(reasons, photoId){
         const modal = document.querySelector('div#reasonsList');
         const reapproveWindow = document.querySelector('div.reason-re-approve');
         const hiddenInput = reapproveWindow.querySelector('input#photo-reaprove-id');
@@ -68,24 +75,39 @@ var ReapproveFromLastQueue = class {
         sendButton.click();
         sendButton.remove();
     }
+    isForbiddenTraffSource(){
+        const userInfos = document.querySelectorAll('div#user-info > span > b');
+        for(let userInfo of userInfos){
+            const lowerCasedInfo = userInfo.textContent.toLowerCase();
+            const isContain = this.forbiddenTraffSources.find
+                (source => source === lowerCasedInfo);
+            if(isContain) return true;
+        }
+        return false;
+    }
     receiveHandler(message, sender, sendResponse){
         let isLevelEqual = true;
         const srcModule = message;
-        const {photoId, level, skinColor, tabId} = srcModule;
+        const {photoId, level, skinColor, tabId, activeReasons} = srcModule;
         const distModule = this.moduleManager.getModuleByPhotoId(photoId);
         const obj = {tabId: tabId};
-        if(!distModule){
+        if(!distModule || distModule.section !== 'approved'){
             obj.text = 'no dist module';
             return sendResponse(obj);
         }
-        let reasons = srcModule._instance.activeReasons;
-        if(reasons.includes('level'))
+        if(activeReasons.includes('level'))
             isLevelEqual = (srcModule.level === distModule.level);
         if(!isLevelEqual) {
             obj.text = 'levels not equal';
             return sendResponse(obj);
         }
-        this.sendForReapprove(reasons, photoId);
+        if(activeReasons.includes('decline') &&
+            this.isForbiddenTraffSource()){
+                obj.text = 'forbidden traff source';
+                return sendResponse(obj);
+        }
+
+        this.send(activeReasons, photoId);
         obj.text = 'sent';
         sendResponse(obj);
     }

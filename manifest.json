@@ -28,6 +28,7 @@
 			"content/modules/VideoItem.js",
 			"content/modules/GalleryPhotoItem.js",
 			"content/modules/PhotoLastItem.js",
+			"content/modules/CheckLastPhotos.js",
 			"content/services/AdvancedMode.js",
 			"content/services/DisableAutoMistake.js",
 			"content/services/ReapproveFromLastQueue.js",

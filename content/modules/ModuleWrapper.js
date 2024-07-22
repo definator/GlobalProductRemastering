@@ -1,14 +1,47 @@
 class ModuleWrapper {
     constructor(module, node) {
-        this.galleryURLPrefix = 'https://my.platformphoenix.com/user/photos?user_id=';
-        this.galleryURL;
+        this._galleryURL;
         this._node = node;
         this._instance = null;
-        this.name = module.name;
+        this._name = module.name;
         this._rootSelector = module.rootSelector;
         this.reloadDetector = module.reloadDetector;
         this._isActive = false;
         this.childModules = [];
+        this._photoId;
+    }
+    get name(){
+        return this._name;
+    }
+    get photoId(){
+        return this._photoId;
+    }
+    set photoId(id){
+        this._photoId = id;
+    }
+    get level(){
+        return this._level;
+    }
+    set level(lvl){
+        this._level = lvl;
+    }
+    get skinColor(){
+        return this._skinColor;
+    }
+    set skinColor(col){
+        this._skinColor = col;
+    }
+    get photoInfo(){
+        return this._photoInfo;
+    }
+    set photoInfo(info){
+        this._photoInfo = info;
+    }
+    get galleryURL(){
+        return this._galleryURL;
+    }
+    set galleryURL(url){
+        this._galleryURL = url;
     }
     get instance(){
         return this._instance;
@@ -28,40 +61,21 @@ class ModuleWrapper {
     get rootSelector(){
         return this._rootSelector;
     }
+    get section(){
+        return this.instance.section;
+    }
     setChildModule(module){
         this.childModules.push(module);
     }
-    getGalleryURL(){
-        if(!this.instance.getProfileId) return;
-        const profileId = this.instance.getProfileId();
-        this.galleryURL = this.galleryURLPrefix + profileId;
-        return this.galleryURL;
-    }
-    getPhotoId(){
-        if(!this.instance.getPhotoId) return;
-        const photoId = this.instance.getPhotoId();
-        return photoId;
-    }
-    getLevel(){
-        if(!this.instance.getLevel) return;
-        return this.instance.getLevel();
-    }
-    getSkinColor(){
-        if(!this.instance.getSkinColor) return;
-        return this.instance.getSkinColor();
-    }
-    getPhotoInfo(){
-        if(!this.instance.getPhotoInfo) return;
-        return this.instance.getPhotoInfo();
-    }
     init(){
+        // debugger;
         if(!window[this.name]) return;
-        this.instance = new window[this.name](this._node);
-        this.galleryURL = this.getGalleryURL();
-        this.photoInfo = this.getPhotoInfo();
-        this.photoId = this.getPhotoId();
-        this.level = this.getLevel();
-        this.skinColor = this.getSkinColor();
+        this.instance = new window[this.name](this.node);
+        this.galleryURL = this.instance.galleryURL;
+        this.photoInfo = this.instance.photoInfo;
+        this.photoId = this.instance.photoId;
+        this.level = this.instance.level;
+        this.skinColor = this.instance.skinColor;
         return this.instance;
     }
 }

@@ -1,7 +1,7 @@
 var GalleryPhotoItem = class {
     constructor(node){
-        this.photoInfo;
-        this.levelPairs = {
+        this._photoInfo;
+        this._levelPairs = {
             normal: 0,
             sexy: 1,
             hard: 2,
@@ -13,21 +13,22 @@ var GalleryPhotoItem = class {
     get node(){
         return this._node;
     }
-    getLevelNumber(){
-        this.photoInfo = JSON.parse(this.node.dataset.photo);
+    get photoInfo(){
+        this._photoInfo = JSON.parse(this.node.dataset.photo);
+        return this._photoInfo;
+    }
+    get levelNumber(){
         return this.photoInfo.level;
     }
-    getPhotoInfo(){
-        this.photoInfo = JSON.parse(this.node.dataset.photo);
-        return this.photoInfo;
-    }
-    getLevel(){
-        const levelNumber = this.getLevelNumber();
-        const keys = Object.keys(this.levelPairs);
-        const level = keys.find(key => this.levelPairs[key] === levelNumber);
+    get level(){
+        const keys = Object.keys(this._levelPairs);
+        const level = keys.find(key => this._levelPairs[key] === this.levelNumber);
         return level;
     }
-    getPhotoId(){
+    get photoId(){
         return this.photoInfo.photoId;
+    }
+    get section(){
+        return this.node.dataset.type;
     }
 }

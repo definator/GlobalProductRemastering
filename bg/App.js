@@ -39,8 +39,10 @@ class App {
         console.log('reapproving last item');
     }
     loadedTabAction(tabId, changeInfo, tab){
+        if(changeInfo.status === 'loading')
+            this.serviceManager.performAction('loadingTab', tab);
         if(changeInfo.status === 'complete')
-            this.serviceManager.performAction('loadedTab', tab);
+            this.serviceManager.performAction('completeTab', tab);
         if(changeInfo.status === 'unloaded')
             this.serviceManager.performAction('unloadedTab', tab);
     }

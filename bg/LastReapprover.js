@@ -1,79 +1,70 @@
 export class LastReapprover {
     constructor(){
-        this.modulesLoading = [];
-        this.modules = [];
-        this.loadingTabs = [];
-        this.processingModule;
-        this.processingTabId;
+        this.reapprovingModules = [];
+        this.readyModules = [];
         this.status = 'waiting';
-        this.modules = [];
         this.tabsToClose = [];
     }
     addModules(modules){
         modules.forEach(module => {
             const tabInfo = {
                 active: false,
-                // index: 0,
                 url: module.galleryURL
             };
-            this.modulesLoading.push(module);
+            this.reapprovingModules.push(module);
             chrome.tabs.create(tabInfo, this.rememberTab.bind(this));
         });
     }
     rememberTab(tab){
-        this.loadingTabs.push(tab);
-    }
-    delayBeforeClosing(){
-        const tabId = this.tabsToClose.shift();
-        chrome.tabs.remove(tabId, this.removedTabAction.bind(this));
+        const pendingModule = this.reapprovingModules.find
+            (module => (!module.tabId && module.galleryURL === tab.pendingUrl) );
+        pendingModule.tabId = tab.id;
     }
     getResponseFromGallery(response){
         if(!response || !response.text){
-            this.updateStatus('waiting');
+            // this.updateStatus('waiting');
             return console.log(response);
         }
         if(response.text === 'sent'){
-            this.tabsToClose.push(response.tabId);
+            return this.tabsToClose.push(response.tabId);
         }
+        // this.updateStatus('waiting');
+        console.log(response);
     }
-    closeTab(loadedTabId){
-        chrome.tabs.remove(loadedTabId, this.removedTabAction.bind(this));
-        // this.tabsToClose = this.tabsToClose.filter(tab => tab.id !== loadedTab.id);
+    closeTab(tabToClose){
+        chrome.tabs.remove(tabToClose, this.removedTabAction.bind(this));
     }
-    reapproveTab(loadedTab){
-        console.log(this.loadingTabs);
-        console.log(this.tabsToClose);
-        this.loadingTabs = this.loadingTabs.filter(tab => tab.id !== loadedTab.id);
-        const loadedModule = this.modulesLoading.find
-            (module => module.galleryURL === loadedTab.pendingUrl);
-        loadedModule.tabId = loadedTab.id;
-        this.modules.push(loadedModule);
+    unloadedTabAction(tab){
+
     }
-    loadedTabAction(tab){
-        if(!this.loadingTabs.length && !this.tabsToClose.length) return;
-        const tabToReapprove = this.loadingTabs.find(ltab => ltab.id === tab.id);
-        if(tabToReapprove) return this.reapproveTab(tabToReapprove);
-        const tabToClose = this.tabsToClose.find(ctabId => ctabId === tab.id);
-        if(tabToClose) return this.closeTab(tabToClose);
+    loadingTabAction(tab){
+        if(!this.tabsToClose.length) return;
+        const tabToCloseId = this.tabsToClose.find(id => id === tab.id);
+        if(!tabToCloseId) return;
+        this.tabsToClose = this.tabsToClose.filter(id => id === tabToCloseId);
+        this.closeTab(tabToCloseId);
+    }
+    completeTabAction(tab){
+        if(!this.reapprovingModules.length) return;
+        const moduleToReapprove = this.reapprovingModules.find
+            (module => module.tabId === tab.id);
+        this.readyModules.push(moduleToReapprove);
     }
     removedTabAction(){
-        this.tabsToClose = this.tabsToClose.filter(tab => tab.id !== this.processingTabId);
-        this.processingTabId = null;
-        this.updateStatus('waiting');
+        console.log('tab\'s been removed');
+        // this.updateStatus('waiting');
     }
-    updateStatus(status){
-        this.status = status;
-    }
+    // updateStatus(status){
+    //     this.status = status;
+    // }
     tick(){
-        if(this.status !== 'waiting')
-            return;
-        if(!this.modules.length){
+        // if(this.status !== 'waiting')
+        //     return;
+        if(!this.readyModules.length){
             return;
         }
-        this.updateStatus('processing');
-        console.log(this.modules);
-        const module = this.modules.shift();
-        this.processingTabId = module.tabId;
+        const module = this.readyModules.shift();
+        if(!module) return;
         chrome.tabs.sendMessage(
             module.tabId,
             module,

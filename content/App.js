@@ -297,7 +297,6 @@ class App {
             chrome.runtime.onMessage.addListener(this.reactChromeEvent.bind(this));
     }
     async init(){
-        let modules, services;
         this.config = await this.getConfig();
         if(!this.config)
             return console.log('Could not get config from background script');
@@ -306,12 +305,6 @@ class App {
         this.setChromeEvents();
         this.initServiceManager();
         this.initModuleManager();
-        // this.initModuleManager();
-        // modules = this.moduleManager.initedModules;
-        // services = this.serviceManager.initedServices;
-        // this.performEvent(undefined, modules, 'loadItem');
-        // this.performEvent(undefined, services, 'loadItem');
-        // this.setBasicEvents();
     }
 }
 
