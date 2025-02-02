@@ -6,11 +6,11 @@ class Config {
         this.storageName = defaultConfig.storageName;
     }
     async getFromStorage(){
-        const currentConfig = await chrome.storage.sync.get(this.storageName);
+        const currentConfig = await chrome.storage.local.get(this.storageName);
         return currentConfig[this.storageName];
     }
     async setStorage(storageName, obj){
-        chrome.storage.sync.set({[storageName]: obj});
+        chrome.storage.local.set({[storageName]: obj});
     }
     async init(){
         const storageConfig = await this.getFromStorage();

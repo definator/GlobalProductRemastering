@@ -1,310 +1,75 @@
-class NodeMounter {
-    mount(obj){
-        const parentNodes = document.querySelectorAll(obj.parentSelector);
-        if(!parentNodes.length) return;
-        for(let parentNode of parentNodes) {
-            let beforeNode;
-            const appendArr = [];
-            const [nodeName, nodeClassName] = obj.node.split('.');
-            const newNode = document.createElement(nodeName);
-            newNode.className = nodeClassName;
-            appendArr.push(newNode);
-            if(obj.beforeSelector){
-                beforeNode = parentNode.querySelector(obj.beforeSelector);
-                appendArr.push(beforeNode);
-            }
-            parentNode[obj.appendType](...appendArr);
-        }
-    }
-}
-
-class ModuleManager {
-    constructor(config){
-        this.reloadSelectors = ['span#queueCounter',
-                                'span#queue-counter'];
-        this.modules = config.modules;
-        this.customModules = config.customModules;
-        this.initedModules = [];
-        this.reloadDetectors;
-        this.items = [];
-        this.collections = [];
-    }
-    getActiveItem(){
-        const activeItem = this.initedModules.find(module => {
-            const node = module.node;
-            if(node.className.contains('gpr-active-item'))
-                return module;
-        });
-        return activeItem;
-    }
-    getActiveModule(){
-        return this.initedModules.find(module => module.isActive);
-    }
-    getModuleByNode(node){
-        const modules = this.initedModules;
-        const targetModule = modules.find(module => module.node.contains(node));
-        if(!targetModule) return;
-        return targetModule;
-        
-    }
-    getModuleByPhotoId(photoId){
-        const module = this.initedModules.find(module => {
-            if(!module.photoId) return;
-            if(module.photoId === photoId)
-                return module;
-        });
-        if(module)
-            return module;
-    }
-    getModuleByName(name){
-        return this.initedModules.find(module => module.moduleName === name);
-    }
-    setActiveModule(module, target){
-        const curActiveModule = this.getActiveModule();
-        if(!curActiveModule){
-            module.isActive = true;
-            return;
-        }
-        if(curActiveModule.node.isSameNode(module.node))
-            return;
-        curActiveModule.isActive = false;
-        module.isActive = true;
-    }
-    eventHandler(e){
-        let affectedModule;
-        const eventName = e.type;
-        if(eventName === 'mouseover'){
-            // debugger;
-            affectedModule = this.getModuleByNode(e.target);
-            if(!affectedModule) return;
-            this.setActiveModule(affectedModule, e.target);
-        }
-        if(!affectedModule) return;
-        const funcName = eventName+'Handler';
-        const func = affectedModule[funcName];
-        if(func) func(e);
-    }
-    // chromeEventHandler(message){
-    //     const funcName = 'receiveHandler';
-    //     this.initedServices.forEach(service => {
-    //         if(service[funcName])
-    //             service[funcName](message);
-    //     });
-    // }
-    mountCustomModules(){
-        this.customModules.forEach(customModule => {
-            debugger;
-            let beforeElem;
-            const {name, parentSelector, appendType, element} =
-            customModule;
-            if(!window[name]) return;
-            const parentNodes = document.querySelectorAll(parentSelector);
-            if(!parentNodes.length) return;
-            const appendArray = [];
-            const [elementType, elementClassname] = element.split('.');
-            const newElement = document.createElement(elementType);
-            appendArray.push(newElement);
-            newElement.className = elementClassname;
-            for(let node of parentNodes){
-                if(customModule.beforeSelector){
-                    beforeElem = node.querySelector(customModule.beforeSelector);
-                    appendArray.push(beforeElem);
-                }
-                node[appendType](...appendArray);
-                this.initModule(customModule, newElement);
-            }
-        });
-    }
-    reloadItem(mutations){
-        mutations.forEach(mutation => {
-            const added = mutation.addedNodes;
-            if(!added || !added[0]) return;
-            const detailObj = {detail: {
-                counterNode: added
-            }};
-            const event = new CustomEvent('loadItem', detailObj);
-            console.log('reloaded items');
-            document.dispatchEvent(event);
-        });
-    }
-    setReloader(reloadDetector){
-        const reloader = document.querySelector(reloadDetector);
-        const observer = new MutationObserver(this.reloadItem.bind(this));
-        const config = {childList: true};
-        observer.observe(reloader, config);
-    }
-    queryModules(obj){
-        const arr = [];
-        const isSubObject = (module, obj) => {
-            for(let key in obj){
-                if(!module.hasOwnProperty(key) || module[key] !== obj[key])
-                    return false;
-            }
-            return true;
-        };
-        const result = this.modules.filter(module => {
-            if(!isSubObject(module, obj)) return;
-            return module;
-        });
-        return result;
-    }
-    deleteModules(modules){
-
-    }
-    initModule(module, node){
-        let itemMult, detailsObj;
-        const instance = new ModuleWrapper(module, node);
-        instance.init();
-        if(!instance) return;
-        this.initedModules.push(instance);
-        itemMult = instance.name.includes('Item');
-        detailsObj = {detail: {
-            module: instance
-        }};
-        if(itemMult){
-            const event = new CustomEvent('loadItem', detailsObj);
-            document.dispatchEvent(event);
-        }
-    }
-    initCustomModules(){
-        const customModules = this.customModules;
-
-    }
-    init(){
-        const modules = this.modules;
-        modules.forEach(module => {
-            const nodes = document.querySelectorAll(module.rootSelector);
-            if(!nodes[0]) return;
-            nodes.forEach(node => this.initModule(module, node));
-        });
-    }
-}
-
-class ServiceManager {
-    constructor(services){
-        this.services = services;
-        this.initedServices = [];
-        this.moduleManager = null;
-    }
-    turnOnService(serviceName){
-        const pageURL = window.location.href;
-        const serviceObj = this.services[serviceName];
-        const forbiddenPages = serviceObj.forbiddenPages;
-        if(forbiddenPages && forbiddenPages.includes(pageURL))
-            return console.log(`This page is currently forbidden for ${serviceName}`);
-        const serviceDeclaration = window[serviceName];
-        const service = new serviceDeclaration(this.moduleManager);
-        service.init();
-        this.initedServices.push(service);
-    }
-    turnOffService(serviceName){
-        const service = this.initedServices.find
-                        (service => service.constructor.name === serviceName);
-        if(!service)
-            return console.log(`Service ${serviceName} has not been inited yet`);
-        const index = this.initedServices.indexOf(service);
-        if(service.turnOff)
-            service.turnOff();
-        this.initedServices.splice(index, 1);
-    }
-    eventHandler(e){
-        const eventName = e.type;
-        if(eventName === 'mouseover') return;
-        const funcName = eventName+'Handler';
-        this.initedServices.forEach(service => {
-            if(service[funcName])
-                service[funcName](e);
-        });
-    }
-    chromeEventHandler(message, sender, sendResponse){
-        const funcName = 'receiveHandler';
-        this.initedServices.forEach(service => {
-            if(service[funcName])
-                service[funcName](message, sender, sendResponse);
-        });
-    }
-    addModuleManager(moduleManager){
-        this.initedServices.forEach(service => {
-            service.moduleManager = moduleManager;
-        });
-    }
-    init(){
-        Object.keys(this.services).forEach(key => {
-            const state = this.services[key].state;
-            if(!window[key] || !state) return;
-            this.turnOnService(key);
-        });
-        return this.initedServices;
-    }
-}
-
 
 class App {
     constructor(){
-        this.config;
-        this.moduleManager;
-        this.services;
-        this.activeModule;
-        this.serviceManager
         this.storageName = 'gprConfig';
+        this.observerCounter = 0;
     }
-    async getConfig(){
-        const storageContent = await chrome.storage.sync.get(this.storageName);
-        this.config = storageContent[this.storageName];
-        console.log('config is ', this.config);
-        return this.config;
+    readyStateChangeListener(e){
+        console.log("READYSTATECHANGE event");
+        const images = document.querySelectorAll('img');
+        const frames = document.querySelectorAll('.frame');
+        console.log('Images length is: ', images.length);
+        console.log('Frames length is: ', frames.length);
+        console.log(e.target.readyState);
     }
-    mountCustomNodes(){
-        const nodeMounter = new NodeMounter();
-        this.config.customNodes.forEach(customNode => {
-            nodeMounter.mount(customNode);
-        });
-    }
-    initModuleManager(){
-        this.moduleManager = new ModuleManager(this.config);
-        this.moduleManager.init();
-        this.serviceManager.addModuleManager(this.moduleManager);
-    }
-    initServiceManager(){
-        this.serviceManager = new ServiceManager(this.config.services);
-        this.serviceManager.init();
-    }
-    performEvent(e, instances, eventName){
-        const funcName = eventName+'Handler';
-        instances.forEach(instance => {
-            if(!instance[funcName])
+    mutationObserverListener(mutations){
+        mutations.forEach(mutation => {
+            const addedNodes = mutation.addedNodes;
+            const removedNodes = mutation.removedNodes;
+            if(addedNodes && addedNodes.length){
+                this.observerCounter++;
+                addedNodes.forEach(addedNode => {
+                    console.log('Added node: ',addedNode);
+                    console.log(this.observerCounter);
+                });
                 return;
-            instance[funcName](e);
+            }
+            this.observerCounter--;
+            removedNodes.forEach(removedNode => {
+                console.log('Removed node: ',removedNode);
+                console.log(this.observerCounter);
+            });
         });
     }
-    reactBasicEvent(e){
-        this.moduleManager.eventHandler(e);
-        this.serviceManager.eventHandler(e);
-    }
-    setBasicEvents(){
-        const basicEvents = ['mouseover', 'mouseup', 'mousedown',
-                                'click', 'keydown', 'loadItem',
-                            'addTopMenuItem'];
-        basicEvents.forEach(eventName => {
-            document.addEventListener(eventName, this.reactBasicEvent.bind(this));
-        });
-    }
-    reactChromeEvent(message, sender, sendResponse){
-        // this.moduleManager.chromeEventHandler(message);
-        this.serviceManager.chromeEventHandler(message, sender, sendResponse);
-    }
-    setChromeEvents(){
-            chrome.runtime.onMessage.addListener(this.reactChromeEvent.bind(this));
-    }
+    // mutationDebounce(){
+    //     console.log('inside debounce');
+    //     let timerId;
+    //     return (...args) => {
+    //         console.log('inside closure');
+    //         if(timerId)
+    //             return clearTimeout(timerId);
+    //         timerId = setTimeout(() => {
+    //             console.log('inside setTimeout');
+    //             this.mutationObserverListener.apply(this, args);
+    //         }, 100);
+    //     }
+    // }
     async init(){
-        this.config = await this.getConfig();
-        if(!this.config)
-            return console.log('Could not get config from background script');
-        this.moduleManager = new ModuleManager(this.config);
-        this.setBasicEvents();
-        this.setChromeEvents();
-        this.initServiceManager();
-        this.initModuleManager();
+        let config = await chrome.storage.local.get(this.storageName);
+        config = config[this.storageName];
+        console.log(config);
+        this.moduleManager = new ModuleManager(config.modules);
+        this.moduleManager.init();
+        console.log(this.moduleManager);
+        // const moduleCompiler = new ModuleCompiler(config);
+        // moduleCompiler.compile();
+        // moduleCompiler.watch();
+        // const target = document.body;
+        // const config = {childList: true, subtree: true};
+        // const observer = new MutationObserver(this.mutationObserverListener.bind(this));
+        // observer.observe(target, config);
+        // console.log("The very START");
+        // const images = document.querySelectorAll('img');
+        // const frames = document.querySelectorAll('.frame');
+        // console.log('Images length is: ', images.length);
+        // console.log('Frames length is: ', frames.length);
+        // console.log(document.readyState);
+        // document.addEventListener('readystatechange', this.readyStateChangeListener.bind(this));
+        // const nodes = document.querySelectorAll('div.col-4');
+        // for(const node of nodes){
+        //     const photoSearchItem = new PhotoSearchItem(node);
+        //     photoSearchItem.init();
+        // }
     }
 }
 

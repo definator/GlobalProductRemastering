@@ -1,6 +1,6 @@
 {
 	"name": "GPR",
-	"description": "Global Product Remastering",
+	"description": "Global Product",
 	"version": "1.0",
 	"manifest_version": 3,
 
@@ -22,17 +22,20 @@
 			"style/css/PhotoLastItem.css"
 		],
 		  "js": [
-			"content/modules/ModuleWrapper.js",
+			"content/modules/Module.js",
+			"content/modules/LastItem.js",
+			"content/modules/CheckSearchPhotosModule.js",
+			"content/modules/PhotoLastItem.js",
+			"content/modules/PhotoSearchItem.js",
 			"content/modules/HeaderModule.js",
 			"content/modules/HnSItem.js",
 			"content/modules/VideoItem.js",
 			"content/modules/GalleryPhotoItem.js",
-			"content/modules/PhotoLastItem.js",
-			"content/modules/CheckLastPhotos.js",
 			"content/services/AdvancedMode.js",
 			"content/services/DisableAutoMistake.js",
 			"content/services/ReapproveFromLastQueue.js",
 			"content/config.js",
+			"content/ModuleManager.js",
 			"content/App.js"
 		  ]
 		}

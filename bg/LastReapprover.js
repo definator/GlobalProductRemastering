@@ -1,70 +1,73 @@
 export class LastReapprover {
     constructor(){
-        this.reapprovingModules = [];
-        this.readyModules = [];
+        this.modulesLoading = [];
+        this.modules = [];
+        this.loadingTabs = [];
+        this.processingModule;
+        this.processingTabId;
         this.status = 'waiting';
+        this.modules = [];
         this.tabsToClose = [];
     }
     addModules(modules){
         modules.forEach(module => {
             const tabInfo = {
                 active: false,
+                // index: 0,
                 url: module.galleryURL
             };
-            this.reapprovingModules.push(module);
+            this.modulesLoading.push(module);
             chrome.tabs.create(tabInfo, this.rememberTab.bind(this));
         });
     }
     rememberTab(tab){
-        const pendingModule = this.reapprovingModules.find
-            (module => (!module.tabId && module.galleryURL === tab.pendingUrl) );
-        pendingModule.tabId = tab.id;
+        this.loadingTabs.push(tab);
+    }
+    delayBeforeClosing(){
+        const tabId = this.tabsToClose.shift();
+        chrome.tabs.remove(tabId, this.removedTabAction.bind(this));
     }
     getResponseFromGallery(response){
-        if(!response || !response.text){
-            // this.updateStatus('waiting');
+        if(!response || !response.text || response.text !== 'okay'){
+            this.updateStatus('waiting');
             return console.log(response);
         }
-        if(response.text === 'sent'){
-            return this.tabsToClose.push(response.tabId);
-        }
-        // this.updateStatus('waiting');
-        console.log(response);
+        this.tabsToClose.push(response.tabId);
+        setTimeout(this.delayBeforeClosing.bind(this), 1000);
     }
-    closeTab(tabToClose){
-        chrome.tabs.remove(tabToClose, this.removedTabAction.bind(this));
-    }
-    unloadedTabAction(tab){
-
-    }
-    loadingTabAction(tab){
-        if(!this.tabsToClose.length) return;
-        const tabToCloseId = this.tabsToClose.find(id => id === tab.id);
-        if(!tabToCloseId) return;
-        this.tabsToClose = this.tabsToClose.filter(id => id === tabToCloseId);
-        this.closeTab(tabToCloseId);
-    }
-    completeTabAction(tab){
-        if(!this.reapprovingModules.length) return;
-        const moduleToReapprove = this.reapprovingModules.find
-            (module => module.tabId === tab.id);
-        this.readyModules.push(moduleToReapprove);
+    loadedTabAction(tab){
+        if(!this.loadingTabs.length) return;
+        const loadedTab = this.loadingTabs.find(ltab => ltab.id === tab.id);
+        if(!loadedTab) return;
+        this.loadingTabs = this.loadingTabs.filter(tab => tab.id !== loadedTab.id);
+        // debugger;
+        const loadedModule = this.modulesLoading.find
+            (module => module.galleryURL === loadedTab.pendingUrl);
+        loadedModule.tabId = loadedTab.id;
+        // loadedModule.instance.tabId = loadedTab.id;
+        this.modules.push(loadedModule);
     }
     removedTabAction(){
-        console.log('tab\'s been removed');
-        // this.updateStatus('waiting');
+        this.processingTabId = null;
+        this.updateStatus('waiting');
     }
-    // updateStatus(status){
-    //     this.status = status;
-    // }
+    updateStatus(status){
+        this.status = status;
+    }
     tick(){
-        // if(this.status !== 'waiting')
-        //     return;
-        if(!this.readyModules.length){
+        console.log(this.modules);
+        console.log(this.modules.length);
+        console.log(this.status);
+        if(this.status !== 'waiting')
+            return;
+        if(!this.modules.length){
             return;
         }
-        const module = this.readyModules.shift();
-        if(!module) return;
+        this.updateStatus('processing');
+        console.log('Photos remained ', this.loadingTabs.length);
+        console.log(this.modules);
+        const module = this.modules.shift();
+        this.processingTabId = module.tabId;
         chrome.tabs.sendMessage(
             module.tabId,
             module,

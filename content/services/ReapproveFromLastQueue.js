@@ -15,9 +15,6 @@ var ReapproveFromLastQueue = class {
             scamm: 9,
             trash: 0,
         };
-        this.forbiddenTraffSources = [
-            'neotalks'
-        ];
     }
     keydownHandler(e){
         const activeModule = this.moduleManager.getActiveModule();
@@ -30,37 +27,39 @@ var ReapproveFromLastQueue = class {
         const formattedReason = reason.replace(' ', '-');
         photoLastItem.toggleForReapprove(formattedReason);
     }
-    sendForReapprove(){
-        const message = {};
-        const modulesForReapprove = [];
+    clickHandler(e){
+        const activeModule = this.moduleManager.getActiveModule();
+        if(!activeModule || activeModule.name !== this.reapproveModuleName) return;
+        // debugger;
         const modules = this.moduleManager.initedModules;
-        modules.forEach(module => {
-            const obj = {};
+        const modulesForReapprove = modules.filter(module => {
             const instance = module.instance;
-            if(!instance.isForReapprove) return;
-            obj.galleryURL = module.galleryURL;
-            obj.photoId = instance.photoId;
-            obj.level = instance.level;
-            obj.skinColor = instance.skinColor;
-            obj.activeReasons = instance.activeReasons;
-            modulesForReapprove.push(obj);
+            if(!instance || !instance.isForReapprove || !instance.isForReapprove())
+                return;
+            return module;
         });
-        message.serviceName = 'LastReapprover';
-        message.action = 'addModules';
-        message.data = modulesForReapprove;
+        const message = {
+            serviceName: 'LastReapprover',
+            action: 'addModules',
+            data: modulesForReapprove
+        };
         chrome.runtime.sendMessage(message);
     }
-    clickHandler(e){
-        const arr = [];
-        const activeModule = this.moduleManager.getActiveModule();
-        if(activeModule && activeModule.name === this.reapproveModuleName)
-            return this.sendForReapprove();
+    finishReapprove(){
+        // this.sendResponse('waiting')
+        window.close();
     }
-    send(reasons, photoId){
+    sendForReapprove(reasons, photoId, tabId, sendResponse){
         const modal = document.querySelector('div#reasonsList');
         const reapproveWindow = document.querySelector('div.reason-re-approve');
         const hiddenInput = reapproveWindow.querySelector('input#photo-reaprove-id');
+        const labels = reapproveWindow.querySelectorAll('label');
         const sendButton = reapproveWindow.parentNode.querySelector('button.re-approve');
+        const obj = {
+            tabId: tabId,
+            text: 'okay'
+        };
+        // this.sendResponse = sendResponse;
         modal.style.display = 'block';
         modal.classList.add('in');
         modal.setAttribute('area-hidden', 'false');
@@ -71,45 +70,36 @@ var ReapproveFromLastQueue = class {
             const input = label.querySelector('input');
             input.checked = true;
         });
-        sendButton.disabled = false;
+
+        // modal.classList.remove('in');
         sendButton.click();
         sendButton.remove();
-    }
-    isForbiddenTraffSource(){
-        const userInfos = document.querySelectorAll('div#user-info > span > b');
-        for(let userInfo of userInfos){
-            const lowerCasedInfo = userInfo.textContent.toLowerCase();
-            const isContain = this.forbiddenTraffSources.find
-                (source => source === lowerCasedInfo);
-            if(isContain) return true;
-        }
-        return false;
+        sendResponse(obj);
+        // setTimeout(this.finishReapprove.bind(this), 300);
     }
     receiveHandler(message, sender, sendResponse){
         let isLevelEqual = true;
         const srcModule = message;
-        const {photoId, level, skinColor, tabId, activeReasons} = srcModule;
+        const {photoId, level, skinColor, tabId} = srcModule;
         const distModule = this.moduleManager.getModuleByPhotoId(photoId);
         const obj = {tabId: tabId};
-        if(!distModule || distModule.section !== 'approved'){
+        // debugger;
+        if(!distModule){
+            console.log(photoId);
+            console.log(this.moduleManager);
             obj.text = 'no dist module';
             return sendResponse(obj);
         }
-        if(activeReasons.includes('level'))
+        let reasons = srcModule._instance.activeReasons;
+        if(reasons.includes('level'))
             isLevelEqual = (srcModule.level === distModule.level);
         if(!isLevelEqual) {
             obj.text = 'levels not equal';
             return sendResponse(obj);
         }
-        if(activeReasons.includes('decline') &&
-            this.isForbiddenTraffSource()){
-                obj.text = 'forbidden traff source';
-                return sendResponse(obj);
-        }
-
-        this.send(activeReasons, photoId);
-        obj.text = 'sent';
-        sendResponse(obj);
+        console.log(reasons);
+        // sendResponse('processing');
+        this.sendForReapprove(reasons, photoId, tabId, sendResponse);
     }
     createReapproveBlock(parentNode){
         const mainBlock = document.createElement('div');

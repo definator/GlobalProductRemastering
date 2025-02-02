@@ -9,7 +9,6 @@ export const defaultConfig = {
         {
             name: 'HnSItem',
             rootSelector: 'li.hs-item',
-            reloadDetector: 'span#queueCounter'
         },
         {
             name: 'VideoItem',
@@ -22,10 +21,14 @@ export const defaultConfig = {
         },
         {
             name: 'PhotoLastItem',
-            rootSelector: 'div.col-4'
+            rootSelector: 'div.col-4:not(:has(div.info))'
         },
         {
-            name: 'CheckLastPhotos',
+            name: 'PhotoSearchItem',
+            rootSelector: 'div.col-4:has(div.info)'
+        },
+        {
+            name: 'CheckSearchPhotosModule',
             rootSelector: 'a#check-photos'
         }
         

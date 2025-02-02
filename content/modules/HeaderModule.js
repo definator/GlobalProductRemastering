@@ -8,11 +8,11 @@ var TopMenu = class {
     }
 }
 
-var HeaderModule = class {
-    constructor(rootSelector){
-        this.rootSelector = rootSelector;
+var HeaderModule = class extends BasicModule {
+    constructor(node){
+        super(node);
         this.customModules = [];
-        this.node;
+        this.node = node;
         this.surNameBlock;
         this.config;
     }
