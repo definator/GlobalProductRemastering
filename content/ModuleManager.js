@@ -19,7 +19,8 @@ class ModuleWatcher {
         this.moduleTemplates = moduleTemplates;
     }
     findMatchingModule(node){
-
+	const requestedTemplate = this.moduleTemplates.find(tem => node.matches(tem.rootSelector));
+	return requestedTemplate || undefined;
     }
     mutationReaction(mutations){
         const obj = {};
@@ -27,8 +28,11 @@ class ModuleWatcher {
             const {addedNodes} = mutation;
             if(!addedNodes[0]) return;
             addedNodes.forEach(addedNode => {
-                // const matchingModule = this.findMatchingModule(addedNode);
+                const matchingModule = this.findMatchingModule(addedNode);
                 console.log(addedNode);
+		if(!matchingModule) return;
+		this.callback(matchingModule.name, addedNode);
+		
             });
             
         });
@@ -46,21 +50,19 @@ class ModuleManager {
     constructor(moduleTemplates){
         this.moduleTemplates = moduleTemplates;
         this.modules = [];
-        console.log('modulemanager created');
     }
     addModule(name, node){
-        console.log('Name of module is ', name);
         const module = new window[name](node);
         module.setModuleName(name);
-        module.init();
+	if(module.init)
+		module.init();
         this.modules.push(module);
-        console.log(module, 'ADDED');
     }
     init(){
         const moduleScanner = new ModuleScanner(this.moduleTemplates);
         const moduleWatcher = new ModuleWatcher(this.moduleTemplates);
         moduleScanner.scan(this.addModule.bind(this));
-        // moduleWatcher.watch(this.addModule.bind(this))
+        moduleWatcher.watch(this.addModule.bind(this))
         
     }
 }

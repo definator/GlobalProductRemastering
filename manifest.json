@@ -23,6 +23,7 @@
 		],
 		  "js": [
 			"content/modules/Module.js",
+			"content/modules/FrameItem.js",
 			"content/modules/LastItem.js",
 			"content/modules/CheckSearchPhotosModule.js",
 			"content/modules/PhotoLastItem.js",

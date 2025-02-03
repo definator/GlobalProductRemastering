@@ -19,6 +19,7 @@ class Module {
         return this.#type;
     }
 }
+
 class BasicModule extends Module {
     #type = 'basic';
     #node;
@@ -44,28 +45,3 @@ class BasicModule extends Module {
         this.setEventListeners();
     }
 }
-// class Module extends Module {
-//     constructor(node){
-//         super(node);
-//         this.activeClassName = 'gpr-active-module';
-//     }
-//     mouseEnterListener(){
-//         this.node.classList.add(this.activeClassName);
-//     }
-//     mouseLeaveListener(){
-//         this.node.classList.remove(this.activeClassName);
-//     }
-//     setEventListeners(){
-//         this.node.addEventListener('mouseenter', this.mouseEnterListener.bind(this));
-//         this.node.addEventListener('mouseleave', this.mouseLeaveListener.bind(this));
-//     }
-//     init(){
-//         this.setEventListeners();
-//     }
-// }
-
-// class SubModule extends Module {
-//     constructor(node){
-//         super(node);
-//     }
-// }

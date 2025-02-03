@@ -35,6 +35,7 @@ class App {
     //     console.log('inside debounce');
     //     let timerId;
     //     return (...args) => {
+	debugger;
     //         console.log('inside closure');
     //         if(timerId)
     //             return clearTimeout(timerId);

@@ -43,13 +43,4 @@ var HeaderModule = class extends BasicModule {
     addCustoms(){
         this.addTopMenu();
     }
-    init(){
-        // this.config = await this.getConfig();
-        // this.initItems();
-        // this.addCustoms();
-        console.log(this, ' inited');
-        // this.setComponents();
-        // this.setEventHandlers();
-        // this.removeTitle();
-    }
 }

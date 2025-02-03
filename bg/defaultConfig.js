@@ -4,7 +4,7 @@ export const defaultConfig = {
     modules: [
         {
             name: 'HeaderModule',
-            rootSelector: 'header.navbar.navbar-static-top'
+            rootSelector: 'header.navbar'
         },
         {
             name: 'HnSItem',
@@ -30,7 +30,11 @@ export const defaultConfig = {
         {
             name: 'CheckSearchPhotosModule',
             rootSelector: 'a#check-photos'
-        }
+        },
+	{
+	    name: 'FrameItem',
+	    rootSelector: 'div.frame'
+	}
         
 
         // TrashCollection: 'div#illegal-content-request-report tbody tr',
