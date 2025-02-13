@@ -63,8 +63,9 @@ class AdvancedBlock {
         return this;
     }
 }
-var HnSItem = class {
+var HnSItem = class extends BasicModule {
     constructor(node){
+        super(node);
         this.node = node;
         this.customModules = [];
         this.isActive = false;
